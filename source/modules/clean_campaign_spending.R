@@ -11,31 +11,34 @@ source(
 )
 
 # ---------------------------------------------------------------------------- #
-filenames <- list.files(
+input_filenames <- list.files(
     here("data/raw/"),
     pattern = "campaign_spending",
     full.names = TRUE
 )
 
 # read in files
-campaign <- filenames %>%
+campaign <- input_filenames %>%
     map(fread, encoding = "Latin-1")
 
 # rename columns to standard form
 list_vars <- list(
     cod_tse = c("sg_ue", "numero_ue", "sigla_da_ue"),
     candidate_name = c("nm_candidato", "nome_candidato"),
-    cpf_candidate = c("cd_cpf_adm", "cpf_do_candidato"),
+    cpf_candidate = c("cd_cpf_adm", "cpf_do_candidato", "nr_cpf_candidato"),
     position = c("ds_cargo", "cargo"),
-    cnpj = c("cd_cpf_cnpj_fornecedor", "cpf_cnpj_do_fornecedor"),
-    name_beneficiary = c("nm_fornecedor", "nome_do_fornecedor_receita_federal"),
+    cpf_or_cnpj_supplier = c(
+        "cd_cpf_cnpj_fornecedor", "cpf_cnpj_do_fornecedor", "nr_cpf_cnpj_fornecedor"
+    ),
+    name_beneficiary = c("nm_fornecedor", "nome_do_fornecedor"),
     party = c("sg_partido", "sigla_partido"),
-    value_expense = c("vr_despesa", "valor_despesa"),
+    value_expense = c("vr_despesa", "valor_despesa", "vr_despesa_contratada"),
     date_expense = c("dt_despesa", "data_da_despesa")
 )
 
 dictionary_cols <- create_dictionary(list_vars)
 
+# rename columns and convert special characters to ascii
 campaign <- campaign %>%
     map(
         compose(
@@ -47,3 +50,20 @@ campaign <- campaign %>%
         )
     )
 
+# fix value of receipt
+campaign <- campaign %>%
+    map(
+        ~ mutate(
+            .,
+            value_expense = str_replace(value_expense, ",", ".") %>%
+                as.double()
+        )
+    )
+
+# deflate to december 2002 reais
+campaign <- campaign %>%
+    map(
+        ~ left_join(., ipca)
+    )
+
+# write-out
