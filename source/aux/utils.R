@@ -1,3 +1,14 @@
+fread <- partial(
+    data.table::fread,
+    nThread = parallel::detectCores()
+)
+
+fwrite <- partial(
+    data.table::fwrite,
+    nThread = parallel::detectCores(),
+    compress = "gzip"
+)
+
 read_data <- function(dir, filename) {
     data <- fread(
         sprintf("%s/%s.csv.gz", dir, filename),
