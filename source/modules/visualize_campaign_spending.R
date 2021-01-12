@@ -97,3 +97,26 @@ point_value_per_vote <- campaign_party %>%
         ylim = c(0, 20)
     )
 
+plot <- list(
+    boxplot_value,
+    boxplot_value_per_vote,
+    point_value,
+    point_value_per_vote
+)
+
+filename <- sprintf(
+    here("figures/%s.pdf"),
+    c(
+        "boxplot_expense", 
+        "boxplot_expense_per_vote", 
+        "mean_expense", 
+        "mean_expense_per_vote"
+    )
+)
+
+pwalk(
+list(
+    plot = plot,
+    filename = filename
+),
+    ggsave)
