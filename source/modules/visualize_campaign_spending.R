@@ -13,8 +13,9 @@ source(
 theme_set(
     theme_minimal()
 )
+
 # ---------------------------------------------------------------------------- #
-message("generate visualizations")
+message("import data")
 
 campaign_party <- fread(
     here("data/clean/campaign_party_vote.csv")
@@ -26,10 +27,13 @@ campaign_party <- campaign_party %>%
         party = if_else(party == "republicanos", "prb", party)
     )
 
-campaign_party %>%
-    filter(
-        party %in% c("prb", "psc") &
-        value_expense > 0
+# ---------------------------------------------------------------------------- #
+message("generate visualizations")
+
+# boxplots
+boxplot_value <- campaign_party %>%
+    mutate(
+        party = if_else(party %in% c("prb", "psc"), party, "other")
     ) %>%
     ggplot() +
     geom_boxplot(
@@ -40,10 +44,9 @@ campaign_party %>%
         ylim = c(0, 8e4)
     )
 
-campaign_party %>%
-    filter(
-        party %in% c("prb", "psc") &
-        value_expense > 0
+boxplot_value_per_vote <- campaign_party %>%
+    mutate(
+        party = if_else(party %in% c("prb", "psc"), party, "other")
     ) %>%
     ggplot() +
     geom_boxplot(
@@ -51,5 +54,46 @@ campaign_party %>%
         outlier.shape = NA
     ) +
     coord_cartesian(
-        ylim = c(0, 1000)
+        ylim = c(0, 50)
     )
+
+# point estimate: average
+point_value <- campaign_party %>%
+    mutate(
+        party = if_else(party %in% c("prb", "psc"), party, "other")
+    ) %>%
+    group_by(party, year) %>%
+    summarise(
+        value_expense = mean(value_expense, na.rm = TRUE),
+        .groups = "drop"
+    ) %>%
+    ggplot() + 
+    geom_point(
+        aes(as.factor(year), value_expense, color = party),
+        position = position_dodge(0.5),
+        size = 3
+    ) +
+    coord_cartesian(
+        ylim = c(0, 3e5)
+    )
+
+point_value_per_vote <- campaign_party %>%
+    mutate(
+        party = if_else(party %in% c("prb", "psc"), party, "other")
+    ) %>%
+    group_by(party, year) %>%
+    summarise(
+        value_per_vote = sum(value_expense, na.rm = TRUE)/
+            sum(vote, na.rm = TRUE),
+        .groups = "drop"
+        ) %>%
+    ggplot() + 
+    geom_point(
+        aes(as.factor(year), value_per_vote, color = party),
+        position = position_dodge(0.5),
+        size = 3
+    ) +
+    coord_cartesian(
+        ylim = c(0, 20)
+    )
+
