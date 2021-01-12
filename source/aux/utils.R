@@ -41,3 +41,14 @@ create_dictionary <- function(named_list_of_vars) {
 
     return(dictionary)
 }
+
+summarise_party_spending <- function(data){
+    data_summary <- data %>%
+        group_by(cod_ibge_6, year, party) %>%
+        summarise(
+            sum = sum(value_expense, na.rm = TRUE),
+            .groups = "drop"
+        )
+    
+    return(data_summary)
+}

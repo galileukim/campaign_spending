@@ -26,6 +26,14 @@ ipca <- fread(
     here("data/raw/ipca.csv")
 )
 
+identifiers <- fread(
+    here("data/raw/data_rosettastone.csv")
+) %>%
+    transmute(
+        cod_tse = codetse,
+        cod_ibge_6 = codeipea
+    )
+
 # ---------------------------------------------------------------------------- #
 message("cleaning data")
 # rename columns to standard form
@@ -86,6 +94,12 @@ campaign <- campaign %>%
         ~ mutate(., value_expense = value_expense/ipca * 100) %>%
             select(-ipca) %>%
             round(2)
+    )
+
+# add cod_ibge_6
+campaign <- campaign %>%
+    map(
+        ~ left_join(., identifiers, by = c("cod_tse"))
     )
 
 # ---------------------------------------------------------------------------- #
