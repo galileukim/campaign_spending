@@ -36,6 +36,9 @@ election_2020 <- fread(
         party = SG_PARTIDO,
         vote = QT_VOTOS_NOMINAIS,
         year = 2020
+    ) %>%
+    mutate(
+        across(where(is.character), str_to_lower)
     )
 
 identifiers <- fread(
@@ -44,9 +47,6 @@ identifiers <- fread(
     transmute(
         cod_tse = codetse,
         cod_ibge_6 = codeipea
-    ) %>%
-    mutate(
-        across(where(is.character), str_to_lower)
     )
 
 # ---------------------------------------------------------------------------- #
@@ -99,6 +99,6 @@ message("writing out data")
 
 # write-out data
 campaign_party_vote %>%
-    fwrite(
+    data.table::fwrite(
         here("data/clean/campaign_party_vote.csv")
     )

@@ -46,7 +46,7 @@ summarise_party_spending <- function(data){
     data_summary <- data %>%
         group_by(cod_ibge_6, year, party) %>%
         summarise(
-            sum = sum(value_expense, na.rm = TRUE),
+            value_expense = sum(value_expense, na.rm = TRUE),
             .groups = "drop"
         )
     
