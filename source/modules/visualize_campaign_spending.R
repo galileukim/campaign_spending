@@ -21,6 +21,10 @@ campaign_party <- fread(
     here("data/clean/campaign_party_vote.csv")
 )
 
+vote_party <- fread(
+    here("data/clean/party_vote.csv")
+)
+
 # fix republicanos -> prb
 campaign_party <- campaign_party %>%
     mutate(
@@ -28,9 +32,15 @@ campaign_party <- campaign_party %>%
     )
 
 # ---------------------------------------------------------------------------- #
-message("generate visualizations")
+message("find similar parties with respect to number of candidates")
+
 christian_parties <- c("prb", "psc")
 disagg_parties <- c("prb", "psc", "pmdb", "dem", "psdb", "pt", "pp", "pr")
+
+number_of_candidates <- 
+
+# ---------------------------------------------------------------------------- #
+message("generate visualizations")
 
 parties_to_plot <- list(
     aggregated = christian_parties,

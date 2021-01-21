@@ -105,3 +105,8 @@ campaign_party_vote %>%
     data.table::fwrite(
         here("data/clean/campaign_party_vote.csv")
     )
+
+vote_party %>%
+    data.table::fwrite(
+        here("data/clean/party_vote.csv")
+    )
