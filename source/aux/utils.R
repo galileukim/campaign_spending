@@ -42,13 +42,44 @@ create_dictionary <- function(named_list_of_vars) {
     return(dictionary)
 }
 
-summarise_party_spending <- function(data){
+summarise_party_spending <- function(data) {
     data_summary <- data %>%
         group_by(cod_ibge_6, year, party) %>%
         summarise(
             value_expense = sum(value_expense, na.rm = TRUE),
             .groups = "drop"
         )
-    
+
     return(data_summary)
+}
+
+# ---------------------------------------------------------------------------- #
+# plotting aids
+gg_boxplot <- function(data, x, y, grouping, lims) {
+    plot <- data %>%
+        ggplot(
+            aes({{x}}, {{y}}),
+        ) +
+        geom_boxplot(
+            aes(color = {{grouping}}),
+            outlier.shape = NA
+        ) +
+        coord_flip(
+            ylim = lims
+        )
+
+    return(plot)
+}
+
+gg_point <- function(data, x, y, grouping, lims) {
+    plot <- data %>%
+     ggplot() + 
+    geom_point(
+        aes({{x}}, {{y}}, color = {{grouping}}),
+        position = position_dodge(0.5),
+        size = 3
+    ) +
+    coord_flip(
+        ylim = lims
+    )
 }
