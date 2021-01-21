@@ -44,6 +44,7 @@ create_dictionary <- function(named_list_of_vars) {
 
 summarise_party_spending <- function(data) {
     data_summary <- data %>%
+        filter(position == "prefeito") %>%
         group_by(cod_ibge_6, year, party) %>%
         summarise(
             value_expense = sum(value_expense, na.rm = TRUE),
