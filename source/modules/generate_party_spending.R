@@ -23,14 +23,14 @@ campaign <- input_filenames %>%
     map(fread)
 
 election <- fread(
-    here("data/raw/election_local.csv.gz"),
-    select = c("cod_ibge_6", "election_year", "party", "vote")
+    here("data/raw/election_local.csv.gz")
 )
 
 election_2020 <- fread(
     here("data/raw/election_local_2020.csv"),
     encoding = "Latin-1"
 ) %>%
+    filter(CD_CARGO == 11) %>% # extract only mayors
     transmute(
         cod_tse = SG_UE,
         party = SG_PARTIDO,
@@ -51,37 +51,40 @@ identifiers <- fread(
 
 # ---------------------------------------------------------------------------- #
 message("generate summary statistics")
-campaign_party <- campaign %>% 
+campaign_party <- campaign %>%
     map_dfr(summarise_party_spending)
 
 # filter out na's (72 rows)
 campaign_party <- campaign_party %>%
     filter(!is.na(cod_ibge_6))
 
-# generate party vote by m unicipality year
-vote_party <- election %>%
+# generate party vote by municipality year
+# and number of candidates
+vote_party_pre_2020 <- election %>%
     rename(year = election_year) %>%
-    filter(year >= 2008) %>%
+    filter(year >= 2008 & position == "prefeito") %>%
     group_by(cod_ibge_6, party, year) %>%
     summarise(
         vote = sum(vote, na.rm = TRUE),
         .groups = "drop"
     )
 
-vote_party <- vote_party %>%
+vote_party_2020 <- election_2020 %>%
+    left_join(
+        identifiers,
+        by = "cod_tse"
+    ) %>%
+    group_by(
+        cod_ibge_6, party, year
+    ) %>%
+    summarise(
+        vote = sum(vote, na.rm = TRUE),
+        .groups = "drop"
+    )
+
+vote_party <- vote_party_pre_2020 %>%
     bind_rows(
-        election_2020 %>% 
-            left_join(
-                identifiers,
-                by = "cod_tse"
-            ) %>%
-            group_by(
-                cod_ibge_6, party, year
-            ) %>%
-            summarise(
-                vote = sum(vote, na.rm = TRUE),
-                .groups = "drop"
-            )
+        vote_party_2020
     ) %>%
     arrange(
         party, cod_ibge_6, year
