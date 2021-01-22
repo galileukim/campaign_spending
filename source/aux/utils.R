@@ -65,6 +65,7 @@ gg_boxplot <- function(data, x, y, grouping, lims) {
             aes(color = {{grouping}}),
             outlier.shape = NA
         ) +
+        # scale_x_discrete(forcats::fct_rev({{x}})) +
         coord_flip(
             ylim = lims
         )
@@ -80,7 +81,9 @@ gg_point <- function(data, x, y, grouping, lims) {
         position = position_dodge(0.5),
         size = 3
     ) +
+    # scale_x_discrete(forcats::fct_rev({{x}})) +
     coord_flip(
-        ylim = lims
+        # ylim = lims
     )
 }
+

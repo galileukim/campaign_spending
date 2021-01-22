@@ -53,7 +53,7 @@ christian_candidates <- candidates_per_party %>%
     filter(party %in% christian_parties)
 
 # obtain similar parties  wrt total no. candidates fielded
-# range from 200-500
+# range from 200-500 throughout the period
 # most similar are sol and pv, that also include records for all years
 similar_parties <- candidates_per_party %>%
     filter(
@@ -84,7 +84,7 @@ for (parties in parties_to_plot) {
         mutate(
             party = if_else(party %in% parties, party, "other") %>%
                 fct_relevel(
-                    c(parties, "other")
+                    c("other", parties)
                 ),
             year = as.factor(year)
         )
@@ -153,7 +153,7 @@ plot_names <- c(
 
 filenames <- map(
     list(
-        here("figures/%s.pdf"),
+        here("figures/pooled_%s.pdf"),
         here("figures/disaggregated_%s.pdf"),
         here("figures/similar_%s.pdf")
     ),
