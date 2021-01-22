@@ -23,7 +23,10 @@ campaign_party <- fread(
 
 vote_party <- fread(
     here("data/clean/party_vote.csv")
-)
+) %>%
+     mutate(
+        party = if_else(party == "republicanos", "prb", party)
+    )
 
 # fix republicanos -> prb
 campaign_party <- campaign_party %>%
@@ -37,14 +40,41 @@ message("find similar parties with respect to number of candidates")
 christian_parties <- c("prb", "psc")
 disagg_parties <- c("prb", "psc", "pmdb", "dem", "psdb", "pt", "pp", "pr")
 
-number_of_candidates <- 
+# calculating number of candidates per party-year
+candidates_per_party <- vote_party %>%
+    group_by(party, year) %>%
+    summarise(
+        total = n_distinct(cod_ibge_6),
+        .groups = "drop"
+    )
+
+# extract christian party candidates
+christian_candidates <- candidates_per_party %>%
+    filter(party %in% christian_parties)
+
+# obtain similar parties  wrt total no. candidates fielded
+# range from 200-500
+# most similar are sol and pv, that also include records for all years
+similar_parties <- candidates_per_party %>%
+    filter(
+        !(party %in% christian_parties) &
+        between(total, 200, 500)
+    ) %>%
+    group_by(party) %>%
+    mutate(
+        number_of_races = n_distinct(year)
+    ) %>%
+    filter(number_of_races == 4) %>%
+    distinct(party) %>%
+    pull()
 
 # ---------------------------------------------------------------------------- #
 message("generate visualizations")
 
 parties_to_plot <- list(
     aggregated = christian_parties,
-    disaggregated = disagg_parties
+    disaggregated = disagg_parties,
+    comparable = c(christian_parties, similar_parties)
 )
 plots_output <- list()
 
@@ -102,7 +132,9 @@ for (parties in parties_to_plot) {
             lims = c(0, 20)
         )
 
-    repository <- if(length(parties) == 2) "aggregated" else "disaggregated"
+    repository <- names(parties_to_plot)[
+        map_lgl(parties_to_plot, identical, parties)
+    ]
 
     plots_output[[repository]] <- list(
         boxplot_value,
@@ -122,7 +154,8 @@ plot_names <- c(
 filenames <- map(
     list(
         here("figures/%s.pdf"),
-        here("figures/disaggregated_%s.pdf")
+        here("figures/disaggregated_%s.pdf"),
+        here("figures/similar_%s.pdf")
     ),
     sprintf,
     plot_names
