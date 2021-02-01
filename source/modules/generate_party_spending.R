@@ -97,6 +97,17 @@ campaign_party_vote <- campaign_party %>%
         by = c("cod_ibge_6", "party", "year")
     )
 
+# campaign_party_vote by electoral year
+campaign_party_per_year <- campaign_party_vote %>%
+    group_by(party, year) %>%
+    summarise(
+        n_mayor = n_distinct(cod_ibge_6),
+        mean_campaign = mean(value_expense),
+        median_campaign_per_vote = median(value_expense, na.rm = TRUE),
+        mean_campaign_per_vote = mean(value_expense/vote, na.rm = TRUE),
+        median_campaign_per_vote = median(value_expense/vote, na.rm = TRUE)
+    )
+
 # ---------------------------------------------------------------------------- #
 message("writing out data")
 
@@ -104,6 +115,11 @@ message("writing out data")
 campaign_party_vote %>%
     data.table::fwrite(
         here("data/clean/campaign_party_vote.csv")
+    )
+
+campaign_party_per_year %>%
+    data.table::fwrite(
+        here("data/clean/campaign_party_per_year.csv")
     )
 
 vote_party %>%
