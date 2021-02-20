@@ -51,12 +51,21 @@ identifiers <- fread(
 
 # ---------------------------------------------------------------------------- #
 message("generate summary statistics")
+
+# aggregate total spending by party per year
 campaign_party <- campaign %>%
     map_dfr(summarise_party_spending)
 
-# filter out na's (72 rows)
+# filter out na's (24 rows)
 campaign_party <- campaign_party %>%
     filter(!is.na(cod_ibge_6))
+
+# filter out 2012 and 2016
+campaign_party_spending <- campaign_party %>% 
+    filter(year %in% c(2012, 2016)) %>%
+    group_by(year) %>% 
+    complete(cod_ibge_6, year, nesting(party)) %>%
+    ungroup()
 
 # generate party vote by municipality year
 # and number of candidates
@@ -96,7 +105,6 @@ campaign_party_vote <- campaign_party %>%
         vote_party,
         by = c("cod_ibge_6", "party", "year")
     )
-
 # campaign_party_vote by electoral year
 campaign_party_per_year <- campaign_party_vote %>%
     group_by(party, year) %>%
@@ -112,6 +120,11 @@ campaign_party_per_year <- campaign_party_vote %>%
 message("writing out data")
 
 # write-out data
+campaign_party_spending %>% 
+    write_csv(
+        here("data/clean/campaign_party_spending.csv")
+    )
+    
 campaign_party_vote %>%
     data.table::fwrite(
         here("data/clean/campaign_party_vote.csv")
